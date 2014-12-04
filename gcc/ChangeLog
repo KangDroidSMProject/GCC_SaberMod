@@ -1,3 +1,17 @@
+2014-12-04  Tobias Burnus  <burnus@net-b.de>
+
+	* configure.ac
+	(ac_has_isl_schedule_constraints_compute_schedule):
+	New check.
+	* graphite-clast-to-gimple.c: For ISL 0.14, include deprecate headers.
+	* graphite-interchange.c: Ditto.
+	* graphite-poly.c: Ditto.
+	* graphite-sese-to-poly.c: Ditto.
+	* graphite-optimize-isl.c (getScheduleForBandList): Ditto.
+	Conditionally use ISL 0.13+ functions.
+	* config.in: Regenerate.
+	* configure: Regenerate.
+
 2014-10-29  Kyrylo Tkachov  <kyrylo.tkachov@arm.com>
 
 	* config/aarch64/aarch64.c (aarch64_madd_needs_nop): Restore
