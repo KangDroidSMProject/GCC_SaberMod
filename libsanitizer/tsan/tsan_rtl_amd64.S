@@ -170,15 +170,10 @@ setjmp:
   CFI_ADJUST_CFA_OFFSET(8)
   CFI_REL_OFFSET(%rdi, 0)
   // obtain %rsp
-#if defined(__FreeBSD__)
-  lea 8(%rsp), %rdi
-  mov %rdi, %rsi
-#else
   lea 16(%rsp), %rdi
   mov %rdi, %rsi
   xor %fs:0x30, %rsi  // magic mangling of rsp (see libc setjmp)
   rol $0x11, %rsi
-#endif
   // call tsan interceptor
   call __tsan_setjmp
   // restore env parameter
@@ -202,15 +197,10 @@ _setjmp:
   CFI_ADJUST_CFA_OFFSET(8)
   CFI_REL_OFFSET(%rdi, 0)
   // obtain %rsp
-#if defined(__FreeBSD__)
-  lea 8(%rsp), %rdi
-  mov %rdi, %rsi
-#else
   lea 16(%rsp), %rdi
   mov %rdi, %rsi
   xor %fs:0x30, %rsi  // magic mangling of rsp (see libc setjmp)
   rol $0x11, %rsi
-#endif
   // call tsan interceptor
   call __tsan_setjmp
   // restore env parameter
@@ -241,15 +231,10 @@ sigsetjmp:
   sub $8, %rsp
   CFI_ADJUST_CFA_OFFSET(8)
   // obtain %rsp
-#if defined(__FreeBSD__)
-  lea 24(%rsp), %rdi
-  mov %rdi, %rsi
-#else
   lea 32(%rsp), %rdi
   mov %rdi, %rsi
   xor %fs:0x30, %rsi  // magic mangling of rsp (see libc setjmp)
   rol $0x11, %rsi
-#endif
   // call tsan interceptor
   call __tsan_setjmp
   // unalign stack frame
@@ -287,15 +272,10 @@ __sigsetjmp:
   sub $8, %rsp
   CFI_ADJUST_CFA_OFFSET(8)
   // obtain %rsp
-#if defined(__FreeBSD__)
-  lea 24(%rsp), %rdi
-  mov %rdi, %rsi
-#else
   lea 32(%rsp), %rdi
   mov %rdi, %rsi
   xor %fs:0x30, %rsi  // magic mangling of rsp (see libc setjmp)
   rol $0x11, %rsi
-#endif
   // call tsan interceptor
   call __tsan_setjmp
   // unalign stack frame
@@ -316,7 +296,7 @@ __sigsetjmp:
   CFI_ENDPROC
 .size __sigsetjmp, .-__sigsetjmp
 
-#if defined(__FreeBSD__) || defined(__linux__)
+#ifdef __linux__
 /* We do not need executable stack.  */
 .section        .note.GNU-stack,"",@progbits
 #endif

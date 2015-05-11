@@ -13,7 +13,7 @@
 
 #include "tsan_defs.h"
 #include "tsan_mutex.h"
-#include "tsan_stack_trace.h"
+#include "tsan_sync.h"
 #include "tsan_mutexset.h"
 
 namespace __tsan {
@@ -40,15 +40,21 @@ enum EventType {
 typedef u64 Event;
 
 struct TraceHeader {
-#ifndef TSAN_GO
-  BufferedStackTrace stack0;  // Start stack for the trace.
-#else
-  VarSizeStackTrace stack0;
-#endif
+  StackTrace stack0;  // Start stack for the trace.
   u64        epoch0;  // Start epoch for the trace.
   MutexSet   mset0;
+#ifndef TSAN_GO
+  uptr       stack0buf[kTraceStackSize];
+#endif
 
-  TraceHeader() : stack0(), epoch0() {}
+  TraceHeader()
+#ifndef TSAN_GO
+      : stack0(stack0buf, kTraceStackSize)
+#else
+      : stack0()
+#endif
+      , epoch0() {
+  }
 };
 
 struct Trace {
