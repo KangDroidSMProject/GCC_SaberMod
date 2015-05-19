@@ -196,6 +196,7 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = -D_GNU_SOURCE -D_DEBUG -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS 
 DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -223,6 +224,7 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
+MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -249,6 +251,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
@@ -318,8 +321,7 @@ gcc_version := $(shell cat $(top_srcdir)/../gcc/BASE-VER)
 AM_CXXFLAGS = -Wall -W -Wno-unused-parameter -Wwrite-strings -pedantic \
 	-Wno-long-long -fPIC -fno-builtin -fno-exceptions -fno-rtti \
 	-fomit-frame-pointer -funwind-tables -fvisibility=hidden \
-	-Wno-variadic-macros $(LIBSTDCXX_RAW_CXX_CXXFLAGS) \
-	-std=gnu++11
+	-Wno-variadic-macros $(LIBSTDCXX_RAW_CXX_CXXFLAGS)
 ACLOCAL_AMFLAGS = -I m4
 noinst_LTLIBRARIES = libinterception.la
 interception_files = \

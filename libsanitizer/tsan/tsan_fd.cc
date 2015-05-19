@@ -45,9 +45,8 @@ static bool bogusfd(int fd) {
   return fd < 0 || fd >= kTableSize;
 }
 
-static FdSync *allocsync(ThreadState *thr, uptr pc) {
-  FdSync *s = (FdSync*)user_alloc(thr, pc, sizeof(FdSync), kDefaultAlignment,
-      false);
+static FdSync *allocsync() {
+  FdSync *s = (FdSync*)internal_alloc(MBlockFD, sizeof(FdSync));
   atomic_store(&s->rc, 1, memory_order_relaxed);
   return s;
 }
@@ -64,7 +63,10 @@ static void unref(ThreadState *thr, uptr pc, FdSync *s) {
       CHECK_NE(s, &fdctx.globsync);
       CHECK_NE(s, &fdctx.filesync);
       CHECK_NE(s, &fdctx.socksync);
-      user_free(thr, pc, s, false);
+      SyncVar *v = CTX()->synctab.GetAndRemove(thr, pc, (uptr)s);
+      if (v)
+        DestroyAndFree(v);
+      internal_free(s);
     }
   }
 }
@@ -77,13 +79,13 @@ static FdDesc *fddesc(ThreadState *thr, uptr pc, int fd) {
   if (l1 == 0) {
     uptr size = kTableSizeL2 * sizeof(FdDesc);
     // We need this to reside in user memory to properly catch races on it.
-    void *p = user_alloc(thr, pc, size, kDefaultAlignment, false);
+    void *p = user_alloc(thr, pc, size);
     internal_memset(p, 0, size);
     MemoryResetRange(thr, (uptr)&fddesc, (uptr)p, size);
     if (atomic_compare_exchange_strong(pl1, &l1, (uptr)p, memory_order_acq_rel))
       l1 = (uptr)p;
     else
-      user_free(thr, pc, p, false);
+      user_free(thr, pc, p);
   }
   return &((FdDesc*)l1)[fd % kTableSizeL2];  // NOLINT
 }
@@ -215,7 +217,7 @@ void FdDup(ThreadState *thr, uptr pc, int oldfd, int newfd) {
 
 void FdPipeCreate(ThreadState *thr, uptr pc, int rfd, int wfd) {
   DPrintf("#%d: FdCreatePipe(%d, %d)\n", thr->tid, rfd, wfd);
-  FdSync *s = allocsync(thr, pc);
+  FdSync *s = allocsync();
   init(thr, pc, rfd, ref(s));
   init(thr, pc, wfd, ref(s));
   unref(thr, pc, s);
@@ -225,7 +227,7 @@ void FdEventCreate(ThreadState *thr, uptr pc, int fd) {
   DPrintf("#%d: FdEventCreate(%d)\n", thr->tid, fd);
   if (bogusfd(fd))
     return;
-  init(thr, pc, fd, allocsync(thr, pc));
+  init(thr, pc, fd, allocsync());
 }
 
 void FdSignalCreate(ThreadState *thr, uptr pc, int fd) {
@@ -246,7 +248,7 @@ void FdPollCreate(ThreadState *thr, uptr pc, int fd) {
   DPrintf("#%d: FdPollCreate(%d)\n", thr->tid, fd);
   if (bogusfd(fd))
     return;
-  init(thr, pc, fd, allocsync(thr, pc));
+  init(thr, pc, fd, allocsync());
 }
 
 void FdSocketCreate(ThreadState *thr, uptr pc, int fd) {
@@ -281,13 +283,13 @@ void FdSocketConnect(ThreadState *thr, uptr pc, int fd) {
   init(thr, pc, fd, &fdctx.socksync);
 }
 
-uptr File2addr(const char *path) {
+uptr File2addr(char *path) {
   (void)path;
   static u64 addr;
   return (uptr)&addr;
 }
 
-uptr Dir2addr(const char *path) {
+uptr Dir2addr(char *path) {
   (void)path;
   static u64 addr;
   return (uptr)&addr;
